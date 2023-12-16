@@ -8,7 +8,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/maarij/go-serverless-crud/pkg/handlers"
+)
+
+var(
+	dynaClient dynamodbiface.DynamoDBAPI
 )
 
 func main() {
