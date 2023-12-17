@@ -3,14 +3,12 @@ package user
 import (
 	"encoding/json"
 	"errors"
-
+	"github.com/maarij/go-serverless-crud/pkg/validators"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
-	"github.com/aws/aws-sdk-go/service/events"
 )
 
 var (
@@ -97,8 +95,8 @@ func CreateUser(req events.APIGatewayProxyRequest, tableName, string, dynaClient
 	}
 
 	input := &dynamodb.PutItemInput{
-		Item: av
-		TableName: aws.String(tableName)
+		Item: av,
+		TableName: aws.String(tableName),
 	}
 
 	_, err = dynaClient.PutItem(input)
@@ -109,8 +107,34 @@ func CreateUser(req events.APIGatewayProxyRequest, tableName, string, dynaClient
 	return &u, nil
 }
 
-func UpdateUser()(){
-	
+func UpdateUser(req events.ApiGatewayProxyRequest, tableName string, dynaClient dynamodbiface.DynamoDBAPI)(*User, error){
+	var u User
+
+	if err := json.Unmarshal([]byte(req.body), &u); err !=nil {
+		return nil, errors.New(ErrorInvalidEmail)
+	}
+
+	currentUser, _ := FetchUser(u.Email, tableName, dynaClient)
+	if currentUser != nil && len(currentUser.Email) == 0 {
+		return nil, errors.New(ErrorUserDoesNotExist)
+	}
+
+	av, err := dynamodbattribute.MarshalMap(u)
+	if err != nil {
+		return nil, errors.New(ErrorCouldNotMarshalItem)
+	}
+
+	input := &dynamodb.PutItemInput {
+		Item: av,
+		tableName: aws.String(tableName),
+	}
+
+	_, err := dynaClient.PutItem(input)
+	if err != nil {
+		return nil, errors.New(ErrorCouldNotDynamoPutItem)
+	}
+
+	return &u, nil
 }
 
 func DeleteUser() error{
