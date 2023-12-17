@@ -48,7 +48,12 @@ func FetchUser(email, tableName string, dynaClient dynamodbiface.DynamoDBAPI)(*U
 	return item, nil
 }
 
-func FetchUsers()(){
+func FetchUsers(tableName string, dynaClient dynamodbiface.DynamoDBAPI)(*[]User, error){
+	input := &dynamodb.ScanInput{
+		TableName: aws.String(tableName),
+	}
+
+	dynaClient.Scan(input);
 	
 }
 
