@@ -53,8 +53,16 @@ func FetchUsers(tableName string, dynaClient dynamodbiface.DynamoDBAPI)(*[]User,
 		TableName: aws.String(tableName),
 	}
 
-	dynaClient.Scan(input);
-	
+	result, err := dynaClient.Scan(input)
+
+	if err != nil {
+		return nil, errors.New(ErrorFailedToFetchRecord)
+	}
+
+	item := new([]User)
+	err = dynamodbattribute.UnmarshalMap(result.Items[], item)
+
+	return item, nil
 }
 
 func CreateUser()(){
