@@ -67,15 +67,15 @@ func FetchUsers(tableName string, dynaClient dynamodbiface.DynamoDBAPI)(*[]User,
 	}
 
 	item := new([]User)
-	err = dynamodbattribute.UnmarshalMap(result.Items[], item)
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, item)
 
 	return item, nil
 }
 
-func CreateUser(req events.APIGatewayProxyRequest, tableName, string, dynaClient dynamodbiface.DynamoDBAPI)(*User, error){
+func CreateUser(req events.APIGatewayProxyRequest, tableName string, dynaClient dynamodbiface.DynamoDBAPI)(*User, error){
 	var u User
 
-	if err := json.Unmarshal([]byte(req.body), &u); err !=nil {
+	if err := json.Unmarshal([]byte(req.Body), &u); err !=nil {
 		return nil, errors.New(ErrorInvalidUserData)
 	}
 
@@ -101,16 +101,16 @@ func CreateUser(req events.APIGatewayProxyRequest, tableName, string, dynaClient
 
 	_, err = dynaClient.PutItem(input)
 	if err != nil {
-		return nil, err.New(ErrorCouldNotDynamoPutItem)
+		return nil, errors.New(ErrorCouldNotDynamoPutItem)
 	}
 
 	return &u, nil
 }
 
-func UpdateUser(req events.ApiGatewayProxyRequest, tableName string, dynaClient dynamodbiface.DynamoDBAPI)(*User, error){
+func UpdateUser(req events.APIGatewayProxyRequest, tableName string, dynaClient dynamodbiface.DynamoDBAPI)(*User, error){
 	var u User
 
-	if err := json.Unmarshal([]byte(req.body), &u); err !=nil {
+	if err := json.Unmarshal([]byte(req.Body), &u); err !=nil {
 		return nil, errors.New(ErrorInvalidEmail)
 	}
 
@@ -126,10 +126,10 @@ func UpdateUser(req events.ApiGatewayProxyRequest, tableName string, dynaClient 
 
 	input := &dynamodb.PutItemInput {
 		Item: av,
-		tableName: aws.String(tableName),
+		TableName: aws.String(tableName),
 	}
 
-	_, err := dynaClient.PutItem(input)
+	_, err = dynaClient.PutItem(input)
 	if err != nil {
 		return nil, errors.New(ErrorCouldNotDynamoPutItem)
 	}
@@ -137,7 +137,7 @@ func UpdateUser(req events.ApiGatewayProxyRequest, tableName string, dynaClient 
 	return &u, nil
 }
 
-func DeleteUser(req events.ApiGatewayProxyRequest, tableName string, dynaClient dynamodbiface.DynamoDBAPI) error{
+func DeleteUser(req events.APIGatewayProxyRequest, tableName string, dynaClient dynamodbiface.DynamoDBAPI) error{
 
 	email := req.QueryStringParameters["email"]
 	input := &dynamodb.DeleteItemInput {
